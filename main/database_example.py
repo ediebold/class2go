@@ -2,15 +2,15 @@
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3.
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
+        'NAME': 'class2go',                      # Or path to database file if using sqlite3.
+        'USER': 'class2go',                      # Not used with sqlite3.
+        'PASSWORD': 'class2gopw',                  # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     },
     'celery': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '/opt/class2go/celery/celerydb.sqlite',
+        'NAME': '/Users/Elliot/class2go/celery/celerydb.sqlite',
     },
 
 }
