@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url(r'^test_xml$', 'courses.exams.views.show_test_xml'),
     url(r'^hiring/?$', 'courses.landing.views.hiring'),
 
+    url(r'^maint$', 'c2g.views.maintenance'),
+
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/unenroll/?$', 'courses.views.unenroll'),
 
     # general exam stuff--These endpoints are hidden from student users and do not have to be named (i.e. aliased for each exam subtype)
@@ -143,6 +145,9 @@ urlpatterns = patterns('',
         'courses.views.course_materials',
         name='course_materials_by_section'),
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/admin/?', 'courses.admin_views.admin'),
+                       
+                       
+    url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/leftnav/?$', 'courses.views.leftnav'),
 
     url(r'^switch_mode', 'courses.actions.switch_mode'),
     url(r'^add_section', 'courses.actions.add_section'),
@@ -247,8 +252,7 @@ urlpatterns = patterns('',
     #Content Sharing
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/copy_section/?$', 'courses.content_sections.views.copy_content_form'),
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/copy_section/send/?$', 'courses.content_sections.views.copy_content'),
-                      
-
+                                             
     # Landing Page
     url(r'^/?$', 'courses.landing.views.landing'),
 
@@ -264,6 +268,9 @@ urlpatterns = patterns('',
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/browse_reports/?$', 'courses.reports.views.main'),
     url(r'^generate_report$', 'courses.reports.views.generate_report'),
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/reports/(?P<report_subfolder>[a-zA-Z0-9_-]+)/(?P<report_name>.+)$', 'courses.reports.views.download_report'),
+    
+    #In-line Reports
+    url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/generate_in_line_report/?$', 'courses.reports.views.generate_in_line_report'),
     
     #Current course redirects THIS SHOULD PROBABLY ALWAYS BE THE LAST ITEM THAT HAS TO DO WITH COURSES
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/?$', 'courses.views.current_redirects'),
