@@ -159,7 +159,7 @@ ROOT_URLCONF = 'urls'
 try:
     LOCAL_CACHE_LOCATION
 except NameError:
-    LOCAL_CACHE_LOCATION = "/opt/class2go"
+    LOCAL_CACHE_LOCATION = "/Users/Elliot/class2go/cache"
 
 try:
     FILE_CACHE_TIME
