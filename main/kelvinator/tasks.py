@@ -234,7 +234,6 @@ def kelvinate(store_path_raw, frames_per_minute_target=2, notify_addr=None):
 
     work_dir = None
     try:
-        import pdb; pdb.set_trace()
         (work_dir, jpegs) = create_working_dirs("kelvinator", notify_buf, "jpegs")
         get_video(notify_buf, work_dir, video_filename, store_path)
         extract(notify_buf, work_dir, jpegs, video_filename, start_offset, extraction_frame_rate)
