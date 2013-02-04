@@ -77,7 +77,7 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
 {% else %}
 
     <style>
-    #exam-pane label {clear: both; display: block;}
+    #exam-pane label {clear: both; display: block; width:100%;}
     #exam-pane label input {float: left; margin-right: 1em;}
     #exam-pane  p {clear: both; display: block; padding: 0 0 1em;}
     h3 {clear:both;}
@@ -210,6 +210,8 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
     
     /* Do all the stuff below when page loads (~700 lines!) */
     $(document).ready(function () {
+                   
+        var unsavedChanges = false; //variable flag to denote chnages have been made on page
                       
         {% if videotest %}
 
@@ -676,27 +678,47 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
     submitBtn.after($(saveWorkBtn));
 
     $(saveWorkBtn).click(function () {
-      var fieldCollection = $('#exam-pane').find('input,textarea');
-      var userAnswerObj = window.collectUserAnswers(fieldCollection);
-      var userSelections = userAnswerObj.userSelections; 
+        var fieldCollection = $('#exam-pane').find('input,textarea');
+        var userAnswerObj = window.collectUserAnswers(fieldCollection);
+        var userSelections = userAnswerObj.userSelections; 
 
-      window.myData = JSON.stringify(userSelections);
+        window.myData = JSON.stringify(userSelections);
 
-      var saveXHR = $.post("{% url 'courses.exams.views.student_save_progress' common_page_data.course.prefix common_page_data.course.suffix exam.slug %}",
+        var saveXHR = $.post("{% url 'courses.exams.views.student_save_progress' common_page_data.course.prefix common_page_data.course.suffix exam.slug %}",
                        {   csrfmiddlewaretoken: "{{ csrf_token }}",
                            json_data:JSON.stringify(userSelections),
                            onpage:$(location).attr('href')
                        });
                        
-      saveXHR.error(function(xhr, status, msg) {
-                     var dialogDiv = window.getDialog('Error');
-                     $(dialogDiv).find('p').text("Your answers could not be saved!  "
-                                            + msg + ": "+xhr.responseText.substr(0,99));
+        saveXHR.error(function(xhr, status, msg) {
+                    var dialogDiv = window.getDialog(status.toUpperCase());
+                    var displayText = "Your answers could not be saved!";
+                    if (typeof msg != "undefined" && msg != "") {
+                        displayText += " " + msg;
+                    }
+                    if (typeof xhr.responseText != "undefined" && xhr.responseText != "") {
+                        displayText += xhr.responseText.substr(0,99);
+                    }
+                     $(dialogDiv).find('p').text(displayText);
+                    if (typeof window.myData != "undefined" && window.myData != "" && typeof localStorage != "undefined") {
+                            var storageKey = "{{user.id}}_" + Date.now() + "_{{exam.slug}}";
+                            localStorage[storageKey] = window.myData;
+                    }
                      $(dialogDiv).dialog({ modal: true,
                                            buttons: {'Close':function(){$(this).dialog("close");}}
                                          });
-      });
+        });
 
+        saveXHR.success(function(status, msg, xhr) { 
+                var dialogDiv = window.getDialog(msg.toUpperCase());
+                $(dialogDiv).find('p').text("Your answers have been saved, but not submitted!");
+
+                $(dialogDiv).dialog({ modal: true,
+                                   buttons: {'Close':function(){$(this).dialog("close");}}
+                                 });
+        });
+        
+        unsavedChanges = false; //clear flag when save button clicked
     });
 
 
@@ -952,6 +974,8 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
             $(dialogDiv).attr('title',title);
             $(dialogDiv).append('<p></p>');
             $(document).append($(dialogDiv));
+        } else {
+            $('#ui-dialog-title-dialog-message').text(title);
         }
         return dialogDiv;
     };
@@ -1025,6 +1049,20 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
             $(dialogDiv).dialog({modal: true});
         });
 
+        unsavedChanges = false; //clear flag when submit button clicked
+    });
+    
+    $('input[type="radio"], input[type="checkbox"]').change(function() {
+        unsavedChanges = true; //denote change on radio and checkbox inputs and register unsaved changes
+    });
+    $('textarea, input[type="text"]').keyup(function() {
+        unsavedChanges = true; //denote keystroke and register unsaved changes
+    });
+    
+    $(window).on('beforeunload', function(){
+        if (unsavedChanges) {
+           return 'You have unsaved changes!';
+        }
     });
                       
     // Make sure pre-pop is in a properly-escaped string 
@@ -1062,7 +1100,12 @@ You don't have Javascript enabled or jQuery was not loaded.  This page won't wor
 <script>
         var videoURL = 'http://www.youtube.com/embed/{% if video.mode == 'draft' %}{{video.url}}{% else %}{{video.image.url}}{% endif %}?autoplay=0&wmode=transparent&fs=0&rel=0&modestbranding=1&showinfo=0&start={% if video_rec %}{{video_rec.start_seconds}}{% else %}0{% endif %}&enablejsapi=1&disablekb=1&amp;';
         var thumbnailPath = "http://{{common_page_data.aws_storage_bucket_name}}.s3.amazonaws.com/{{common_page_data.course_prefix}}/{{common_page_data.course_suffix}}/videos/{% if video.mode == 'draft' %}{{video.id}}{% else %}{{video.image.id}}{% endif %}/jpegs/";
+<<<<<<< HEAD
         // questionTimes from parsed XML metadata
+=======
+
+        // questionTimes from parsed XML metadata 
+>>>>>>> 6464d5deb4922c35aba8dbf79bfa4d7e89fa7dde
         var questionTimes = JSON.parse('{{question_times|escapejs}}');
 
 	var video_rec_id = {{ video_rec.id }}

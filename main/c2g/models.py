@@ -1,25 +1,27 @@
 from datetime import datetime, timedelta
 from hashlib import md5
+import logging
 import os
 import re
 import sys
 import time
-import logging
 from urlparse import urlparse, urlunparse
-from django.core.cache import get_cache
+from xml.dom.minidom import parseString
 
 from django import forms
 from django.contrib.auth.models import Group, User
+from django.core.cache import get_cache
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.db import models
 from django.db.models import Max
 from django.db.models.signals import post_save
+from django.utils import encoding
 
 from c2g.util import is_storage_local, get_site_url
 from kelvinator.tasks import sizes as video_resize_options 
-from xml.dom.minidom import parseString
 
 logger = logging.getLogger(__name__)
 
@@ -131,12 +133,27 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
     preview_only_mode = models.BooleanField(default=True)
     institution_only = models.BooleanField(default=False)
     share_to = models.ManyToManyField("self",symmetrical=False,related_name='share_from',null=True, blank=True)
-
+    short_description = models.TextField(blank=True)
+    prerequisites = models.TextField(blank=True)
+    accompanying_materials = models.TextField(blank=True)
+    outcomes = models.TextField(blank=True)
+    faq = models.TextField(blank=True)
+    logo = models.FileField(upload_to=get_file_path,null=True)
+ 
     
     # Since all environments (dev, draft, prod) go against ready piazza, things will get
     # confusing if we get collisions on course ID's, so we will use a unique ID for Piazza.
     # Just use epoch seconds to make it unique.
     piazza_id = models.IntegerField(null=True, blank=True)
+
+    def logo_dl_link(self):
+
+        if self.logo.name is None or not self.logo.storage.exists(self.logo.name):
+            return ""
+        
+        url = self.logo.storage.url(self.logo.name)
+        return url
+
 
     def __unicode__(self):
         if self.title:
@@ -225,6 +242,12 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
             handle = self.handle,
             institution_only = self.institution_only,
             piazza_id = int(time.mktime(time.gmtime())),
+            short_description = self.short_description,
+            prerequisites = self.prerequisites,
+            accompanying_materials = self.accompanying_materials,
+            outcomes = self.outcomes,
+            faq = self.faq,
+            logo = self.logo,
             preview_only_mode = self.preview_only_mode,
         )
         ready_instance.save()
@@ -251,6 +274,18 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
             ready_instance.calendar_start = self.calendar_start
         if not clone_fields or 'calendar_end' in clone_fields:
             ready_instance.calendar_end = self.calendar_end
+        if not clone_fields or 'short_description' in clone_fields:
+            ready_instance.short_description = self.short_description    
+        if not clone_fields or 'prerequisites' in clone_fields:
+            ready_instance.prerequisites = self.prerequisites    
+        if not clone_fields or 'accompanying_materials' in clone_fields:
+            ready_instance.accompanying_materials = self.accompanying_materials    
+        if not clone_fields or 'outcomes' in clone_fields:
+            ready_instance.outcomes = self.outcomes
+        if not clone_fields or 'faq' in clone_fields:
+            ready_instance.faq = self.faq
+        if not clone_fields or 'logo' in clone_fields:
+            ready_instance.logo = self.logo
 
         ready_instance.save()
 
@@ -274,6 +309,18 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
             self.calendar_start = ready_instance.calendar_start
         if not clone_fields or 'calendar_end' in clone_fields:
             self.calendar_end = ready_instance.calendar_end
+        if not clone_fields or 'short_description' in clone_fields:
+            self.short_description = ready_instance.short_description    
+        if not clone_fields or 'prerequisites' in clone_fields:
+            self.prerequisites = ready_instance.prerequisites    
+        if not clone_fields or 'accompanying_materials' in clone_fields:
+            self.accompanying_materials = ready_instance.accompanying_materials    
+        if not clone_fields or 'outcomes' in clone_fields:
+            self.outcomes = ready_instance.outcomes
+        if not clone_fields or 'faq' in clone_fields:
+            self.faq = ready_instance.faq
+        if not clone_fields or 'logo' in clone_fields:
+            self.logo = ready_instance.logo
 
         self.save()
 
@@ -677,6 +724,60 @@ class StudentSection(TimestampMixin, Deletable, models.Model):
     class Meta:
         db_table = u'c2g_sections'
 
+class CourseStudentList(TimestampMixin, models.Model):
+    # TODO: is this model used anyplace? Remove?
+    course = models.ForeignKey(Course, db_index=True)
+    members = models.ManyToManyField(User)
+    max_completion_level = models.IntegerField(default=0)
+
+    def __unicode__(self):
+        return u'CourseStudentList course: ' + str(self.course_id)
+
+class CourseCertificate(TimestampMixin, models.Model):
+    course = models.ForeignKey(Course, db_index=True)
+    assets = models.CharField(max_length=255, null=True)
+    storage = models.CharField(max_length=255, null=True)
+    type = models.CharField(max_length=64, default="completion")
+
+    @classmethod
+    def create(cls, course, type='completion'):
+        """Correctly instantiate a new CourseCertificate."""
+        c = cls(course=course, type=type)
+        c.assets = os.path.join(course.prefix, course.suffix, 'certificates', 'assets')
+        c.storage = os.path.join(course.prefix, course.suffix, 'certificates', 'storage')
+        c.save()
+        return c
+
+    def get_filename_by_user(self, user):
+        """Generate the filename used for certificate storage on disk.
+
+        If user is unspecified, return None.
+        """
+        return "%s-%s-%s-%s.pdf" % (user.username, str(user.id), self.course.handle, self.type)
+
+    def dl_link(self, user):
+        """Generate a download link for this certificate for the given user"""
+        filename = self.get_filename_by_user(user)
+        asset_path = os.path.join(self.storage, filename)
+        url = ''
+        if default_storage.exists(asset_path):
+            if is_storage_local():
+                url = get_site_url() + default_storage.url(asset_path)
+            else:
+                url = default_storage.url_monkeypatched(asset_path, response_headers={'response-content-disposition': 'attachement'})
+                url = remove_querystring(url)        # TODO: Remove when we have longer timeouts
+        return url
+
+    def __repr__(self):
+        s = u'CourseCertificate(pk=' + str(self.id) + ','
+        s += 'course_id=' + str(self.course_id) + ','
+        s += 'type=' + self.type + ','
+        s += 'assets=' + self.assets + ')'
+        return s
+
+    def __unicode__(self):
+        return repr(self)
+
 #Extended storage fields for Users, in addition to django.contrib.auth.models
 #Uses one-to-one as per django recommendations at
 #https://docs.djangoproject.com/en/dev/topics/auth/#django.contrib.auth.models.User
@@ -702,6 +803,8 @@ class UserProfile(TimestampMixin, models.Model):
     user_agent_first = models.CharField(max_length=256, null=True)
     referrer_first = models.CharField(max_length=256, null=True)
     accept_language_first = models.CharField(max_length=64, null=True)
+
+    certificates = models.ManyToManyField(CourseCertificate)
     
     def __unicode__(self):
         return self.user.username
@@ -1670,29 +1773,29 @@ class VideoToExercise(Deletable, models.Model):
 
 
 class ProblemActivity(TimestampMixin, models.Model):
-     student = models.ForeignKey(User)
-     video_to_exercise = models.ForeignKey(VideoToExercise, null=True)
-     problemset_to_exercise = models.ForeignKey(ProblemSetToExercise, null=True)
-     problem_identifier = models.CharField(max_length=255, blank=True)
-     complete = models.IntegerField(null=True, blank=True)
-     attempt_content = models.TextField(null=True, blank=True)
-     count_hints = models.IntegerField(null=True, blank=True)
-     time_taken = models.IntegerField(null=True, blank=True)
-     attempt_number = models.IntegerField(null=True, blank=True)
-     sha1 = models.TextField(blank=True)
-     seed = models.TextField(blank=True)
-     problem_type = models.TextField(blank=True)
-     review_mode = models.IntegerField(null=True, blank=True)
-     topic_mode = models.IntegerField(null=True, blank=True)
-     casing = models.TextField(blank=True)
-     card = models.TextField(blank=True)
-     cards_done = models.IntegerField(null=True, blank=True)
-     cards_left = models.IntegerField(null=True, blank=True)
-     user_selection_val = models.CharField(max_length=1024, null=True, blank=True)
-     user_choices = models.CharField(max_length=1024, null=True, blank=True)
-     def __unicode__(self):
-            return self.student.username + " " + str(self.time_created)
-     class Meta:
+    student = models.ForeignKey(User)
+    video_to_exercise = models.ForeignKey(VideoToExercise, null=True)
+    problemset_to_exercise = models.ForeignKey(ProblemSetToExercise, null=True)
+    problem_identifier = models.CharField(max_length=255, blank=True)
+    complete = models.IntegerField(null=True, blank=True)
+    attempt_content = models.TextField(null=True, blank=True)
+    count_hints = models.IntegerField(null=True, blank=True)
+    time_taken = models.IntegerField(null=True, blank=True)
+    attempt_number = models.IntegerField(null=True, blank=True)
+    sha1 = models.TextField(blank=True)
+    seed = models.TextField(blank=True)
+    problem_type = models.TextField(blank=True)
+    review_mode = models.IntegerField(null=True, blank=True)
+    topic_mode = models.IntegerField(null=True, blank=True)
+    casing = models.TextField(blank=True)
+    card = models.TextField(blank=True)
+    cards_done = models.IntegerField(null=True, blank=True)
+    cards_left = models.IntegerField(null=True, blank=True)
+    user_selection_val = models.CharField(max_length=1024, null=True, blank=True)
+    user_choices = models.CharField(max_length=1024, null=True, blank=True)
+    def __unicode__(self):
+        return self.student.username + " " + str(self.time_created)
+    class Meta:
         db_table = u'c2g_problem_activity'
 
 class NewsEvent(models.Model):
@@ -1711,8 +1814,9 @@ class EditProfileForm(forms.Form):
     last_name = forms.CharField(max_length=30)
     email = forms.CharField(max_length=30)
 
+
 class Email(TimestampMixin, models.Model):
-    sender = models.ForeignKey(User)
+    sender = models.ForeignKey(User, default=1, blank=True, null=True)
     hash = models.CharField(max_length=128, db_index=True)
     subject = models.CharField(max_length=128, blank=True)
     html_message = models.TextField(null=True, blank=True)    
@@ -1740,7 +1844,7 @@ class EmailAddr(models.Model):
     optout = models.BooleanField(default=False)
     optout_code = models.CharField(max_length=64, default='optout')
     def __unicode__(self):
-       return self.addr
+        return self.addr
 
 def write_optout_code(sender, instance, created, raw, **kwargs):
     if created and not raw:  #create means that a new DB entry is created, raw is set when fixtures are being loaded
@@ -2126,6 +2230,9 @@ class Exam(TimestampMixin, Deletable, Stageable, Sortable, models.Model):
     def has_child_exams(self):
         return ContentGroup.has_children(self, types=['exam'])
     
+    def is_child(self):
+        return ContentGroup.is_child(self)
+    
     record_view = property(record_view_name)
 
     def sync_videos_foreignkeys_with_metadata(self):
@@ -2161,7 +2268,7 @@ def videos_in_exam_metadata(xml, times_for_video_slug=None):
         'question_times' only gets populated in the returned dict if a
         times_for_video_slug argument is specified.
     """
-    metadata_dom = parseString(xml) #The DOM corresponding to the XML metadata
+    metadata_dom = parseString(encoding.smart_str(xml, encoding='utf-8')) #The DOM corresponding to the XML metadata
     video_questions = metadata_dom.getElementsByTagName('video')
     
     question_times = {}
@@ -2219,6 +2326,43 @@ class ExamRecord(TimestampMixin, models.Model):
     
     def __unicode__(self):
         return (self.student.username + ":" + self.course.title + ":" + self.exam.title)
+    
+class Instructor(TimestampMixin, models.Model):
+    name = models.TextField(blank=True)
+    email = models.TextField(blank=True)
+    biography = models.TextField(blank=True)
+    photo = models.FileField(upload_to=get_file_path, blank=True)
+    handle = models.CharField(max_length=255, null=True, db_index=True)
+    
+    def photo_dl_link(self):
+        if not self.photo.storage.exists(self.photo.name):
+            return ""
+        
+        url = self.photo.storage.url(self.photo.name)
+        return url
+    
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        db_table = u'c2g_instructor'
+
+class GetCourseInstructorByCourse(models.Manager):
+    def getByCourse(self, course):
+        return self.filter(course=course)
+
+
+class CourseInstructor(TimestampMixin,  models.Model):
+    course = models.ForeignKey(Course)
+    instructor = models.ForeignKey(Instructor)
+    objects = GetCourseInstructorByCourse()
+        
+    def __unicode__(self):
+        return self.course.title + "-" + self.instructor.name
+    
+    class Meta:
+        db_table = u'c2g_course_instructor'
+                
 
 class ExamScore(TimestampMixin, models.Model):
     """
@@ -2231,6 +2375,7 @@ class ExamScore(TimestampMixin, models.Model):
     score = models.FloatField(null=True, blank=True) #this is the score over the whole exam, with penalities applied
     csv_imported = models.BooleanField(default=False)
     #can have subscores corresponding to these, of type ExamScoreField.  Creating new class to do notion of list.
+    #TODO: Add ForeignKey to which ExamRecord is responsible for this score, per GHI #2029
     
     def __unicode__(self):
         return (self.student.username + ":" + self.course.title + ":" + self.exam.title + ":" + str(self.score))
@@ -2639,6 +2784,12 @@ class ContentGroup(models.Model):
                 return True
         return False
 
+    
+    @classmethod
+    def is_child(thisclass, obj):
+        """ Is obj a child? """
+        return obj.contentgroup_set.all().filter(level=2).exists()
+    
     def __repr__(self):
         s = "ContentGroup(group_id=" + str(self.group_id) + ", "
         s += 'course=' + str(self.course.id) + ', ' 

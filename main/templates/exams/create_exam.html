@@ -152,18 +152,13 @@
        
     <div class="well control-group">
         <ul class="nav nav-tabs" id="myTab">
-            <li class="active"><a id="enter-tab" href="#enter-content">Edit</a></li>
-            <li><a id="preview-tab" href="#preview-content">Preview</a></li>
+            <li class="active"><a id="preview-tab" href="#preview-content">Preview</a></li>
+            <li><a id="enter-xml-tab" href="#enter-content-xml">Edit XML Metadata</a></li>
+            <li><a id="enter-html-tab" href="#enter-content-html">Edit HTML</a></li>
         </ul>
 
         <div class="tab-content">
-            <div class="tab-pane active" id="enter-content">
-                <h4>Edit Exam HTML below:</h4>
-                <textarea id="ace_proxy" style="display:none"></textarea>
-                <div class="editor_container" id="editor_container">
-                    <div id="editor"></div>
-                </div>
-                <br />
+            <div class="tab-pane" id="enter-content-xml">
                 <h4>Edit Exam MetaData XML below:</h4>
                 <textarea id="ace_metadata_proxy" style="display:none"></textarea>
                 <div class="editor_container" id="metadata_editor_container">
@@ -171,7 +166,14 @@
                 </div>
                 
             </div>
-            <div class="tab-pane" id="preview-content">
+			<div class="tab-pane" id="enter-content-html">
+				<h4>Edit Exam HTML below:</h4>
+                <textarea id="ace_proxy" style="display:none"></textarea>
+                <div class="editor_container" id="editor_container">
+                    <div id="editor"></div>
+                </div>
+			</div>
+            <div class="tab-pane active" id="preview-content">
                 <div id="preview-pane">
                     <h4>Preview Exam HTML</h4>
                     <div id="staging-area"></div>
@@ -387,6 +389,19 @@ age: 20,
 <script src="{{STATIC_URL}}js/core/beautify-html.js"></script>
 
 <script>
+	$('#due_date').focusout(function() {
+		//Update the grace period and hard deadline fields if the due date is after the current grace and hard deadlines
+			var due = $('#due_date').val(); 
+			var dueDate = new Date(due); 
+			var grace = $("#grace_period").val(); 
+			var hard = $("#hard_deadline").val(); 
+			if(!grace || ((new Date(grace)) < dueDate)) {
+				$('#grace_period').val(due); 				
+			}
+			if(!hard || ((new Date(hard)) < dueDate)) {
+				$('#hard_deadline').val(due); 				
+			}
+	})
     $('#myTab a').click(function (e) {
                         e.preventDefault();
                         $(this).tab('show');
