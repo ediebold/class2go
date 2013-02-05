@@ -1,0 +1,334 @@
+
+/**************
+home unit boxes
+****************/
+
+.home-unit img {float: left;
+    padding-right: 10px;
+    height: 286px;
+    width: 286px;}
+
+.home-unit a {color: #666; font-weight: normal;}
+
+.home-unit a:hover {text-decoration: none}
+
+.home-unit a h3 {color: #1F5EB7; padding-top: 20px;}
+
+.home-unit-box {padding-top:2px;}
+
+.home-unit-box .row{background-color: #FCFCFC;
+    max-height: 286px;
+    border: 1px solid #EEEEEE;
+    box-shadow: 0px 1px 2px 0 #999999;
+    padding-top: 0px;
+    margin-left:0px;
+}
+
+.home-unit .container { min-width: 700px; width: auto;}
+
+.home-unit-box .row:hover {box-shadow: 0px 2px 4px 0 #666;
+    cursor: pointer;
+    border-color: #efefef;}
+
+
+
+/**************
+end home unit boxes
+****************/
+
+a {color:#1F5EB7;}
+a:hover {color:#1F5EB7;}
+
+
+#global-header {
+	background: #26547C;
+	padding-bottom:0px;
+	box-shadow: 1px 1px 5px 1px #666666;
+	overflow:hidden}
+
+.stanford-logo {
+    background-image: url(../../graphics/core/usyd-logo.gif);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 200px auto;
+    display: block;
+    height: 40px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    padding-bottom: 13px;
+    padding-left: 23px;
+    padding-right: 20px;
+    padding-top: 13px;
+    text-indent: -999px;
+    width: 198px;
+    float: left;}
+
+.tagline {
+    float: right;
+    margin-top: 37px;
+    padding-right: 20px;
+}
+
+.top-nav {
+    
+    top: -47px;
+}
+
+.top-nav li .btn {background-color: #666;
+	font-weight:normal;
+	box-shadow:none;
+	text-shadow: none;}
+
+
+.top-nav li .btn:hover {
+  opacity: 0.9;
+  background: #666;}
+
+.home .hero-header {
+    background-image: url("../../graphics/core/USYD-quadrangle.png");
+    padding-bottom: 40px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 0;    }
+    
+body.home {
+   background-color: #fff;
+   }
+   
+   
+.home-unit {
+	padding-top: 0px;}
+   
+   
+   
+.class2go a {
+	background-color: #E2E2E2;}
+        
+ /*******
+MENU
+********/
+        
+        
+#c2g_layout_topbar .navbar .navbar-inner {
+        background-image: url("../../graphics/core/uwa-bg-nav.png") !important;
+   }
+
+
+
+.navbar .nav .active > a, .navbar .nav .active > a:hover  {
+        background-image: url("../../graphics/core/uwa-bg-nav-selected.png") !important;
+        color: #000;
+   }
+
+
+.navbar .nav > li > a {text-shadow: none;
+color: #000;}        
+
+ul.nav li.dropdown:hover ul.dropdown-menu,
+  .navbar .nav li.dropdown.open ul.dropdown-menu,
+  .navbar .nav li.dropdown:hover .dropdown-toggle,
+  .navbar .nav li.dropdown.open .dropdown-toggle {
+    background:#efefef;
+    
+  }
+
+
+/*********
+ACCORDION
+*********/
+
+
+.well.tight {
+    background-color: #E8F4F9;}
+    
+    .well {border-color: #89CBE5;}
+    
+    .nav-list .divider {
+    background-color: #89CBE5;
+    border-bottom: none;
+}
+
+
+/********
+UNITS _MOVED TO BODY.CSS
+*********/
+
+.home-unit img {height:186px; width:186px;}
+.home-unit-box {width: 100%;}
+
+.mainrow {min-width: 700px;}
+
+.row .sixcol {
+margin-right: 3.8%;
+float: left;
+min-height: 1px;
+width: 48%;}
+
+
+.last {
+margin-right: 0px !important;
+}
+
+
+.home-unit .row {margin-left:0px !important;}
+
+.front {}
+
+
+**************
+Instructor  boxes 
+****************/
+
+.instructor-box {
+}
+
+.instructor-box .row {
+	background-color: #FCFCFC;
+	border: 1px solid #EEEEEE;
+	box-shadow: 0px 1px 2px 0 #999999;
+	padding-top: 0px;
+	margin-left:0px;
+}
+
+.instructor-box img {
+	float: left;
+	position: relative;
+	padding-right: 10px;
+	height: 200px;
+	width: 120px;
+}
+
+
+.instructor-box p {
+	padding-top:2px; 
+	font-size:1em;
+	margin: 5px;
+}
+
+
+
+
+
+
+/**************
+end Instructor  boxes 
+****************/
+
+
+
+/*********
+BADGE
+*********/
+
+#badge { 
+   position: absolute;
+    right: -18px;
+    top: -8px;
+  }
+
+#badge img{height: auto;
+  width: auto;}
+  
+  .home-unit {position:relative}
+  
+  .mainrow {min-width: 800px !important;}
+
+
+
+
+/* ============================= */
+/* ! Layout for mobile version   */
+/* ============================= */
+
+@media handheld, only screen and (max-width: 900px) {
+
+	body {
+		
+	}
+	
+.home-unit a p {font-size: 14px;
+line-height: 16px;}
+
+}
+
+
+
+   
+/**********
+FOOTER
+***********/   
+   
+   #global-footer {
+    background:url(../../graphics/core/footer-hp-bgrepeat.jpg) repeat-x;}
+    
+    .footer ul a {color: #666;}
+    
+    .footer .vcard {
+    clear: left;
+    color: #666;
+    font-size: 11px;
+}
+
+/**********
+BUTTONS
+***********/
+
+.btn-primary {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #006dcc;
+  *background-color: #0044cc;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
+  background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
+  background-image: -o-linear-gradient(top, #0088cc, #0044cc);
+  background-image: linear-gradient(to bottom, #0088cc, #0044cc);
+  background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
+  background-repeat: repeat-x;
+  border-color: #0044cc #0044cc #002a80;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:dximagetransform.microsoft.gradient(startColorstr='#ff0088cc', endColorstr='#ff0044cc', GradientType=0);
+  filter: progid:dximagetransform.microsoft.gradient(enabled=false);
+}
+
+.btn-primary:hover,
+.btn-primary:active,
+.btn-primary.active,
+.btn-primary.disabled,
+.btn-primary[disabled] {
+  color: #ffffff;
+  background-color: #0044cc;
+  *background-color: #003bb3;
+}
+
+.btn-primary:active,
+.btn-primary.active {
+  background-color: #003399 \9;
+}
+
+.registration .well {
+background: #f5f5f5;
+}
+
+.form-actions {
+    border-top: 1px solid #89CBE5;
+    background:#e0e0e0;
+}
+
+.nav-list > .current > a,
+.nav-list > .current > a:hover {
+  color: #89CBE5;
+  background-color: #1F5EB7;
+}
+
+.question, .subquestion {
+    border-color: #89CBE5;
+}
+div.question .per-question-btns {border-color: #89CBE5 !important;}
+
+#exam-pane .inline-explanation {background-color: #e0e0e0 !important; color: #89CBE5 !important; }
+
+.toggle-views {
+    background:#99DBF5;
+}
+
+.explanation {color: #89CBE5 !important;}
