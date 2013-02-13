@@ -74,7 +74,7 @@ def main(request, course_prefix, course_suffix):
         is_logged_in = 1
     else:
         is_logged_in = 0
-
+    
     return render_to_response('courses/view.html',
             {'common_page_data':    common_page_data,
              'course':              course,

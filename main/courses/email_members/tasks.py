@@ -165,28 +165,25 @@ def course_email_with_celery(hash_for_msg, to_list,  throttle=False, course_titl
         out of a set with ids 0 to num_workers-1, in homage to the fact that python lists are zero based.
     """
     msg = CourseEmail.objects.get(hash=hash_for_msg)
-    
     p = Popen(['lynx','-stdin','-display_charset=UTF-8','-assume_charset=UTF-8','-dump'], stdin=PIPE, stdout=PIPE)
     (plaintext, err_from_stderr) = p.communicate(input=msg.html_message.encode('utf-8')) #use lynx to get plaintext
-    staff_email = 'noreply@class2go.stanford.edu'
-    if course_handle:
-        staff_email = re.sub(r'\--', r'-',course_handle) + '-staff@class2go.stanford.edu'
+    staff_email = 'edie5042@uni.sydney.edu.au'
+    
     course_title_no_quotes = re.sub(r'"', '', course_title) # strip out all quotes
-    from_addr = '"%s" Course Staff <%s>' % (course_title_no_quotes, staff_email) #make certain that we quote the name part of the email address
+    from_addr = '"%s" Course Staff <%s>' % (course_title_no_quotes, staff_email) #make certain that we quote the name part of the email address]
 
     if err_from_stderr:
         logger.info(err_from_stderr)
-
     try:
-
+        
         connection = get_connection() #get mail connection from settings
+        import pdb; pdb.set_trace()
         connection.open()
         num_sent=0
         num_error=0
 
         rg = random.SystemRandom(random.randint(0,100000))
-
-
+        
         while to_list:
             (first_name, last_name, email) = to_list[-1]
             html_footer = render_to_string('email/email_footer.html',
@@ -204,6 +201,7 @@ def course_email_with_celery(hash_for_msg, to_list,  throttle=False, course_titl
                                             'last_name':last_name,
                                             'email':email,
                                             })
+            
             email_msg = EmailMultiAlternatives(msg.subject, plaintext+plain_footer.encode('utf-8'), from_addr, [email], connection=connection)
             email_msg.attach_alternative(msg.html_message+html_footer.encode('utf-8'),'text/html')
             

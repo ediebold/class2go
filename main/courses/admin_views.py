@@ -10,6 +10,10 @@ from random import randrange
 import datetime
 from courses.actions import auth_view_wrapper, auth_is_staff_view_wrapper
 
+import csv, random
+from django.contrib.auth import authenticate as auth_authenticate
+from django.contrib import messages
+
 @auth_view_wrapper
 def admin(request, course_prefix, course_suffix):
     try:
@@ -18,6 +22,66 @@ def admin(request, course_prefix, course_suffix):
         raise Http404
 
     return render_to_response('courses/admin.html', {'common_page_data':common_page_data}, context_instance=RequestContext(request))
+
+@auth_view_wrapper
+def enroller(request, course_prefix, course_suffix):
+    try:
+        common_page_data = get_common_page_data(request, course_prefix, course_suffix)
+    except:
+        raise Http404
+    
+    #What to do if file has been uploaded
+    if request.method == 'POST':
+            csv_file = request.FILES['csv']
+            reader = csv.reader(csv_file)
+            course_group = common_page_data['course'].student_group
+        
+            rownum = 0
+            for row in reader:
+                current_student = {}
+                # Save header row.
+                if rownum == 2:
+                    header = row
+                elif rownum > 2:
+                    colnum = 0
+                    for col in row:
+                        current_student[header[colnum]] = col
+                        colnum += 1
+                    
+                    #Run this for each student
+                    current_student['unikey'] = current_student['Email'][:8]
+                    user_exists = User.objects.filter(username=current_student['unikey']).exists()
+        
+                    if not user_exists:
+                        #Create user, add them to the course
+                        ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        rg = random.SystemRandom(random.randint(0,100000))
+                        password = (''.join(rg.choice(ALPHABET) for i in range(16))) + '1' #create a random password, which they will never use
+                        
+                        User.objects.create_user(current_student['unikey'], current_student['Email'], password)
+                        User.objects.create_user
+                        # authenticate() always has to be called before login(), and
+                        # will return the user we just created.
+                        new_user = auth_authenticate(username=current_student['unikey'], password=password)
+                        new_user.first_name = current_student['Given Names'].capitalize()
+                        new_user.last_name = current_student['Family Name'].capitalize()
+                        new_user.save()
+                        profile = new_user.get_profile()
+                        profile.site_data = 'USYD'
+                        profile.institutions.add(Institution.objects.get(title='USYD'))
+                        profile.save()
+                    
+                    #Add them to the course
+                    current_user = User.objects.filter(username=current_student['unikey']).get();
+                    course_group.user_set.add(current_user)
+
+                rownum += 1
+            messages.add_message(request,messages.SUCCESS, 'The students have been added!')
+            return redirect('courses.views.main', course_prefix, course_suffix)
+            
+    
+    #What to do if first visit
+    return render_to_response('courses/enroller.html', {'common_page_data':common_page_data}, context_instance=RequestContext(request))
 
 @auth_is_staff_view_wrapper
 def new(request):
@@ -59,7 +123,7 @@ def new(request):
 
         #Get the !!!single!!! (Stanford) institution and relate the course to it.
         institution = Institution.objects.all()[0]
-        
+    
         # Create the course
         draft_course = Course(
             student_group_id = student_group.id,
@@ -76,7 +140,8 @@ def new(request):
             mode='draft',
             handle=handle,
             institution_id = institution.id,
-            preview_only_mode=True,
+            preview_only_mode=False,
+            logo = request.FILES['logo']
         )
         draft_course.save()
         

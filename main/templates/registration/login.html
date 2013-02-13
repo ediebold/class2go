@@ -18,6 +18,9 @@
 <p>Welcome, {{ user.username }}. Thanks for logging in.</p>
 
 {% else %}
+{% for message in messages %}
+    <div class="alert alert-error"><em class="icon-fire"></em><button class="close" data-dismiss="alert">×</button>{{ message }}</div>
+    {% endfor %}
  <div class="row-fluid">
  <div class="span3"> </div>
        {% if login_form.errors %}

@@ -4,6 +4,12 @@
 
 {% block page_title %}
 <div class="pull-left page-title">
+    {% if not user.is_authenticated %}
+        <meta HTTP-EQUIV="REFRESH" content="0; url={% url 'default_login' %}?next={{ request.get_full_path }}">
+    {% endif %}
+    {% if not common_page_data.is_course_member and not "preview" in common_page_data.request.path %}
+            <meta HTTP-EQUIV="REFRESH" content="0; url={% url 'courses.preview.views.preview' common_page_data.course_prefix common_page_data.course_suffix %}">
+    {% endif %}
     <h2>{% block course_page_title %}{{common_page_data.course.title}}{% endblock course_page_title %}</h2>
 </div>
 {% endblock page_title %}
@@ -90,17 +96,13 @@
                         <a id="login_button" class="btn" href="{% url 'default_login' %}?next={{ request.get_full_path }}">Login</a>
                         {% endif %}
                     </li>
-                    {% if not common_page_data.course.institution_only %}
-                    <li class="visible-phone">
-                        <a href="{% url 'registration_register' %}?pre={{common_page_data.course_prefix}}&post={{common_page_data.course_suffix}}">Register</a>
-                    </li>
-                    {% endif %}
                 {% endif %}
                 {% if common_page_data.can_switch_mode or common_page_data.is_course_admin %}
                     {% if common_page_data.course_mode == 'draft' %}
                         <li class="dropdown"{% block course_admin_link %}{% endblock course_admin_link %}>
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Course Administration<em class="caret"></em></a>
                             <ul class="dropdown-menu">
+                                <li><a href="{% url 'courses.admin_views.enroller' common_page_data.course_prefix common_page_data.course_suffix %}">Update Enrolments</a></li>
                               <li><a href="{% url 'courses.email_members.views.email_members' common_page_data.course_prefix common_page_data.course_suffix %}">Email Course Members</a></li>
                               <li><a href="{% url 'courses.reports.views.main' common_page_data.course_prefix common_page_data.course_suffix %}">Reports</a></li>
                               <li><a href="{% url 'courses.reports.views.generate_in_line_report' common_page_data.course_prefix common_page_data.course_suffix %}">In-line Reports</a></li>

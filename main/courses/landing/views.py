@@ -16,11 +16,9 @@ def landing(request):
     """
 
     if not request.user.is_authenticated():
-        course_list = Course.objects.filter(mode='ready', 
-                institution_only = 0)
+        course_list = {}
     else:
-        course_list = Course.objects.filter(Q(mode='ready', 
-                institution_only = 0) | Q(mode='ready', institution__id__in=request.user.get_profile().institutions.all()))
+        course_list = Course.objects.filter(Q(mode='ready', student_group_id__in = request.user.groups.all()) | Q(mode='ready', instructor_group_id__in = request.user.groups.all()) | Q(mode='ready', tas_group_id__in = request.user.groups.all()) | Q(mode='ready', readonly_tas_group_id__in = request.user.groups.all()))
         
     site = getattr(settings, 'SITE_NAME_SHORT')
     r = render_to_response("sites/%s/landing.html" % site,

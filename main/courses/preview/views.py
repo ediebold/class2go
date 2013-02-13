@@ -68,6 +68,11 @@ def preview(request, course_prefix, course_suffix):
     if os.path.isfile(settings.TEMPLATE_DIRS+'/'+class_template):
         template_name=class_template
 
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(request.common_page_data)
+
     return render_to_response(template_name,
                               {'form': form,
                                'login_form': login_form,

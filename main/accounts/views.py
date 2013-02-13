@@ -180,7 +180,7 @@ def default_login(request):
         if settings.SITE_NAME_SHORT == "Stanford":
             return auth_login_view(request)
         else:
-            return ldap_login(request, '', '')
+            return usyd_login(request)
 
 
 @never_cache
@@ -440,6 +440,109 @@ def ldap_login(request, course_prefix, course_suffix):
         messages.add_message(request,messages.SUCCESS, 'You have successfully logged in!')
 
 
+    return HttpResponseRedirect(redir_to)
+
+@never_cache
+def usyd_login(request):
+    
+    #check if there is valid remote user.
+    #if one exists, try to match them
+    #if one does not exist, create it and assign to proper institution
+    #then redirect
+    
+    #setup the redirect first: code borrowed from django contrib library
+    redir_to = request.GET.get('next', '/')
+    netloc = urlparse.urlparse(redir_to)[1]
+    
+    # Heavier security check -- don't allow redirection to a different
+    # host.
+    if netloc and netloc != request.get_host():
+        redir_to = '/'
+    
+    
+    # check if username exists to find out what type of user
+    # this ensures that we don't unecessarily do the ldap auth
+    
+    is_institution_logon = False
+    user_exists = False
+    
+    username = request.POST['username']
+    password = request.POST['password']
+
+    user_exists = User.objects.filter(username=username).exists()
+    
+    if user_exists:
+        user = User.objects.get(username=username)
+        is_institution_logon = user.get_profile().site_data == "USYD"
+
+    result = 'error'
+
+    #Check against SIT database
+
+    from imaplib import IMAP4
+    import logging, socket, sys
+    logger = logging.getLogger(__name__)
+
+    AuthHosts = { "mail.ug.it.usyd.edu.au"}
+
+    
+    for host in AuthHosts:
+        logger.info('IMAP authentication for %s on %s ...' % (username, host))
+        try:
+            m = IMAP4(host)
+            m.login(username, password)
+            m.logout()
+            
+            #Stuff saying they're valid on SIT goes here
+            result = 'success'
+            
+            logger.info('IMAP: %s authenticated %s OK' % (host, username))
+            break
+        except socket.error, val:
+            msg = 'Failed to contact IMAP4 service on authentication server %s: %s' \
+                % (host, val)
+            admin_mail(msg)
+            authenticated = 'Authentication error: please contact administrator'
+        except:
+            typ, val = sys.exc_info()[:2]
+            logger.info('Failed login. %s: %s' % (typ, val))
+            authenticated = str(val)        # 'Bad password' usually
+
+    #Check if they are a Class2Go user
+    if 'error' in result:
+        ''' Now try and do regular auth
+            '''
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            auth_login(request, form.get_user())
+            return HttpResponseRedirect(redir_to)
+        
+        else:
+            messages.add_message(request,messages.ERROR, 'WebAuth did not return your identity to us!  Please try logging in again.  If the problem continues please contact techsupport@c2g.it.usyd.edu.au')
+            extra_context = {}
+            context = RequestContext(request)
+            for key, value in extra_context.items():
+                context[key] = callable(value) and value() or value
+            layout = {'m': 800}
+            
+            return render_to_response('registration/login.html',
+                                      {'form': form, 'layout': json.dumps(layout)},
+                                      context_instance=context)
+
+    #They are a valid SIT user, but are not in C2G database
+    if not User.objects.filter(username=request.POST['username']).exists():
+        
+        messages.add_message(request,messages.ERROR, 'You are not enrolled in any Class2Go courses. Please see your course\'s coordinator if you believe this is a mistake!')
+        return HttpResponseRedirect('default-login?next=' + redir_to)
+    
+    else:
+        #User already exists, so log them in
+        user = User.objects.get(username=username)
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        auth_login(request, user)
+        messages.add_message(request,messages.SUCCESS, 'You have successfully logged in!')
+    
+    
     return HttpResponseRedirect(redir_to)
 
 

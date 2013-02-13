@@ -41,7 +41,11 @@ def list(request, course_prefix, course_suffix):
     form = None
     if request.common_page_data['course_mode'] == "draft":
         form = LiveDateForm()
-
+    
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(common_page_data)
+    
     return render_to_response('videos/'+common_page_data['course_mode']+'/list.html', {'common_page_data': common_page_data, 'section_structures':section_structures, 'context':'video_list', 'form': form}, context_instance=RequestContext(request))
 
 @auth_view_wrapper
@@ -125,7 +129,7 @@ def view(request, course_prefix, course_suffix, slug):
         exam.live_datetime = video.live_datetime    # needed so video shows up
         question_times = ""
 
-    return render_to_response('exams/view_exam.html', 
+    return render_to_response('exams/view_exam.html',
                               {
                                'common_page_data':    common_page_data, 
                                'video':               video,

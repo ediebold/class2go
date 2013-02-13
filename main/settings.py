@@ -412,6 +412,7 @@ DATABASE_ROUTERS = ['c2g.routers.CeleryDBRouter',]
 
 
 # Actually send email
+EMAIL_ALWAYS_ACTUALLY_SEND = True
 try:
    EMAIL_ALWAYS_ACTUALLY_SEND
 except NameError:
@@ -419,14 +420,14 @@ except NameError:
 
 # Email Settings
 
-SERVER_EMAIL = 'noreply@class.stanford.edu'
+SERVER_EMAIL = 'noreply@c2g.it.usyd.edu.au'
 
 # For Production, or if override is set, actually send email
 if PRODUCTION or EMAIL_ALWAYS_ACTUALLY_SEND:
-    DEFAULT_FROM_EMAIL = "noreply@class.stanford.edu" #probably change for production
+    DEFAULT_FROM_EMAIL = "edie5042@uni.sydney.edu.au" #probably change for production
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = "email-smtp.us-east-1.amazonaws.com"
-    EMAIL_PORT = 587
+    EMAIL_PORT = 25
     EMAIL_HOST_USER = SES_SMTP_USER
     EMAIL_HOST_PASSWORD = SES_SMTP_PASSWD
     EMAIL_USE_TLS = True
@@ -449,7 +450,7 @@ BROKER_TRANSPORT='sqs'
 BROKER_USER = AWS_ACCESS_KEY_ID
 BROKER_PASSWORD = AWS_SECRET_ACCESS_KEY
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-west-2', 
+    'region': 'us-east-1',
     'queue_name_prefix' : INSTANCE+'-',
     'visibility_timeout' : 3600*6,
 }

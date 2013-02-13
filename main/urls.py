@@ -40,9 +40,9 @@ urlpatterns = patterns('',
     #Testing messages
     url(r'^_test_messages$', 'c2g.views.test_messages'),
 
-    url(r'^honor_code$', 'c2g.views.hc'),
-    url(r'^terms_of_service$', 'c2g.views.tos'),
-    url(r'^privacy$', 'c2g.views.privacy'),
+    #url(r'^honor_code$', 'c2g.views.hc'),
+    #url(r'^terms_of_service$', 'c2g.views.tos'),
+    #url(r'^privacy$', 'c2g.views.privacy'),
     url(r'^contactus$', 'c2g.views.contactus'),
     url(r'^faq$', 'c2g.views.faq'),
     url(r'^test_xml$', 'courses.exams.views.show_test_xml'),
@@ -300,6 +300,9 @@ urlpatterns = patterns('',
     #In-line Reports
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/generate_in_line_report/?$', 'courses.reports.views.generate_in_line_report'),
     
+    #USYD Enroller
+    url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/enroller/?$', 'courses.admin_views.enroller'),
+                       
     #Current course redirects THIS SHOULD PROBABLY ALWAYS BE THE LAST ITEM THAT HAS TO DO WITH COURSES
     url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/?$', 'courses.views.current_redirects'),
 

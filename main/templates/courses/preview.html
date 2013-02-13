@@ -61,13 +61,9 @@
   </div>
   {% else %}
     <div class="span5">
-    <div class="alert alert-info"><em class="icon-info-sign"></em>Hi {{user.first_name}} {{user.last_name}}.  It looks we already have record of you at {{SITE_TITLE}}.  Would you like to register for {{common_page_data.course.title}}?
-    <form style="display:inline" action="{% url 'courses.actions.signup_with_course' common_page_data.course_prefix common_page_data.course_suffix %}?redirect_to={{request.path}}" method="POST">
-    <input type="submit" id="login_button" class="btn" value="Enroll" />
-    {% csrf_token %}
-    </form>
-    </div>
-    <a href="{% url 'auth_logout' %}?next={% url 'courses.preview.views.preview' common_page_data.course_prefix common_page_data.course_suffix%}">Register or log-in as someone else</a>
+    <div class="alert alert-info"><em class="icon-info-sign"></em>Hi {{user.first_name}} {{user.last_name}}.  It doesn't look like you are enrolled in this course. If this is incorrect, please contact your course co-ordinator.
+        </div>
+    <a href="{% url 'auth_logout' %}?next={% url 'courses.preview.views.preview' common_page_data.course_prefix common_page_data.course_suffix%}">Log-in as someone else</a>
     </div>
   {% endif %}
 
@@ -114,24 +110,7 @@
           </div>
           {% endif %}
       {% endfor %}
-      <div class="registration preview-registration">
-          <div class="well">
-            <h2>{{ SITE_TITLE }} Signup</h2>
-            <form action="{% url 'courses.preview.views.preview_reg' common_page_data.course_prefix common_page_data.course_suffix %}" method="post" class="form-horizontal">
-              <fieldset>
-              {% include "registration/regforminputs.html" %} 
-              </fieldset>
-              <div class="form-actions">
-                  <p>
-                  {{form.tos}} I agree to {{ SITE_TITLE }}'s <a href="{% url 'c2g.views.tos' %}" target="_blank">Terms of Service</a>, 
-                  <a href="{% url 'c2g.views.tos' %}#honor" target="_blank" >Honor Code</a>, and <a href="{% url 'c2g.views.tos' %}#privacy" target="_blank">Privacy Policy</a>
-                  </p>
-                  <input type="submit" value="Register" class="btn btn-primary btn-large" /> &nbsp; Already have an account?  <a href="{% url 'courses.preview.views.preview' common_page_data.course_prefix common_page_data.course_suffix %}?login"> Login instead</a>
-              </div>
-            </form>
           </div>
-       </div>
-    </div>
     {% endif %}
 {% endif %}
     
