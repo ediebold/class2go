@@ -53,10 +53,7 @@
                                 {% endfor %}
                             {% else %}
                                 {% if course in is_student_list %}
-                                    <form style="display:inline" method="POST" action="{% url 'courses.views.unenroll' course.prefix course.suffix %}">
-                                        {% csrf_token %}
-                                        <input class="btn" type="Submit"  value="{% trans 'Unenroll as Student' %}" onclick="return confirm('{% trans 'Do you really want to unenroll?' %}')" />
-                                    </form>
+                                    <a class="btn disabled">{% trans 'Student' %}</a>
                                 {% else %}
                                 <a class="btn disabled">{% trans 'Staff Member' %}</a>
                                 {% endif %}

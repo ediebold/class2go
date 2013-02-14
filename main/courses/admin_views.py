@@ -5,14 +5,17 @@ from django.template import RequestContext
 from django.contrib.auth.models import User,Group
 from courses.common_page_data import get_common_page_data
 
-from c2g.models import Course, Institution, AdditionalPage, CurrentTermMap
+from c2g.models import Course, Institution, AdditionalPage, CurrentTermMap, CourseEmail
 from random import randrange
 import datetime
-from courses.actions import auth_view_wrapper, auth_is_staff_view_wrapper
+from courses.actions import auth_view_wrapper, auth_is_staff_view_wrapper, auth_is_course_admin_view_wrapper
 
 import csv, random
 from django.contrib.auth import authenticate as auth_authenticate
 from django.contrib import messages
+import courses.email_members.tasks
+from hashlib import md5
+from django.core.urlresolvers import reverse
 
 @auth_view_wrapper
 def admin(request, course_prefix, course_suffix):
@@ -23,7 +26,7 @@ def admin(request, course_prefix, course_suffix):
 
     return render_to_response('courses/admin.html', {'common_page_data':common_page_data}, context_instance=RequestContext(request))
 
-@auth_view_wrapper
+@auth_is_course_admin_view_wrapper
 def enroller(request, course_prefix, course_suffix):
     try:
         common_page_data = get_common_page_data(request, course_prefix, course_suffix)
@@ -34,7 +37,9 @@ def enroller(request, course_prefix, course_suffix):
     if request.method == 'POST':
             csv_file = request.FILES['csv']
             reader = csv.reader(csv_file)
-            course_group = common_page_data['course'].student_group
+            course = common_page_data['ready_course']
+            course_group = course.student_group
+            new_students = []
         
             rownum = 0
             for row in reader:
@@ -51,7 +56,6 @@ def enroller(request, course_prefix, course_suffix):
                     #Run this for each student
                     current_student['unikey'] = current_student['Email'][:8]
                     user_exists = User.objects.filter(username=current_student['unikey']).exists()
-        
                     if not user_exists:
                         #Create user, add them to the course
                         ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -63,7 +67,7 @@ def enroller(request, course_prefix, course_suffix):
                         # authenticate() always has to be called before login(), and
                         # will return the user we just created.
                         new_user = auth_authenticate(username=current_student['unikey'], password=password)
-                        new_user.first_name = current_student['Given Names'].capitalize()
+                        new_user.first_name = current_student['Given Names'].split(' ')[0].capitalize()
                         new_user.last_name = current_student['Family Name'].capitalize()
                         new_user.save()
                         profile = new_user.get_profile()
@@ -71,12 +75,38 @@ def enroller(request, course_prefix, course_suffix):
                         profile.institutions.add(Institution.objects.get(title='USYD'))
                         profile.save()
                     
-                    #Add them to the course
+                    #Add them to the course if they're not already in it
                     current_user = User.objects.filter(username=current_student['unikey']).get();
-                    course_group.user_set.add(current_user)
+                
+                    if not current_user in course.get_all_members():
+                        course_group.user_set.add(current_user)
+                        current_user.save()
+                        course_group.save()
+                        new_students.append((current_user.first_name, current_user.last_name, current_user.email))
 
                 rownum += 1
-            messages.add_message(request,messages.SUCCESS, 'The students have been added!')
+            course.commit()
+            subject = 'You have been enrolled in ' + course.title
+            message = 'You have just been enrolled in ' + course.title + '. If you believe this is an error, please email ' + course.contact + ' with details.'
+            email = CourseEmail(course=course,
+                                sender=request.user,
+                                to='new',
+                                subject=subject,
+                                html_message=message,
+                                hash=md5((message+subject+datetime.datetime.isoformat(datetime.datetime.now())).encode('utf-8')).hexdigest())
+            email.save()
+            new_count = len(new_students)
+            courses.email_members.tasks.course_email_with_celery.delay(email.hash,
+                                                              new_students,
+                                                              False,
+                                                              course.title,
+                                                              course.handle,
+                                                              request.build_absolute_uri(reverse('courses.views.main', args=[course_prefix, course_suffix])),
+                                                             )
+            if new_count < 1:
+                messages.add_message(request,messages.INFO, 'No new students were added!')
+            else:
+                messages.add_message(request,messages.SUCCESS, 'The students have been added!')
             return redirect('courses.views.main', course_prefix, course_suffix)
             
     

@@ -14,12 +14,12 @@ def landing(request):
         other rules: superuser - sees all
                      staff - sees all from institution?
     """
-
+    
     if not request.user.is_authenticated():
         course_list = {}
     else:
-        course_list = Course.objects.filter(Q(mode='ready', student_group_id__in = request.user.groups.all()) | Q(mode='ready', instructor_group_id__in = request.user.groups.all()) | Q(mode='ready', tas_group_id__in = request.user.groups.all()) | Q(mode='ready', readonly_tas_group_id__in = request.user.groups.all()))
-        
+        group_list = request.user.groups.all()
+        course_list = Course.objects.filter(Q(student_group_id__in=group_list, mode='ready') | Q(instructor_group_id__in=group_list, mode='ready') | Q(tas_group_id__in=group_list, mode='ready') | Q(readonly_tas_group_id__in=group_list, mode='ready'))
     site = getattr(settings, 'SITE_NAME_SHORT')
     r = render_to_response("sites/%s/landing.html" % site,
             {'hiring': hiring, 

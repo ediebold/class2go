@@ -168,7 +168,6 @@ def course_email_with_celery(hash_for_msg, to_list,  throttle=False, course_titl
     p = Popen(['lynx','-stdin','-display_charset=UTF-8','-assume_charset=UTF-8','-dump'], stdin=PIPE, stdout=PIPE)
     (plaintext, err_from_stderr) = p.communicate(input=msg.html_message.encode('utf-8')) #use lynx to get plaintext
     staff_email = 'edie5042@uni.sydney.edu.au'
-    
     course_title_no_quotes = re.sub(r'"', '', course_title) # strip out all quotes
     from_addr = '"%s" Course Staff <%s>' % (course_title_no_quotes, staff_email) #make certain that we quote the name part of the email address]
 
@@ -177,11 +176,9 @@ def course_email_with_celery(hash_for_msg, to_list,  throttle=False, course_titl
     try:
         
         connection = get_connection() #get mail connection from settings
-        import pdb; pdb.set_trace()
         connection.open()
         num_sent=0
         num_error=0
-
         rg = random.SystemRandom(random.randint(0,100000))
         
         while to_list:
@@ -202,12 +199,12 @@ def course_email_with_celery(hash_for_msg, to_list,  throttle=False, course_titl
                                             'email':email,
                                             })
             
+            
             email_msg = EmailMultiAlternatives(msg.subject, plaintext+plain_footer.encode('utf-8'), from_addr, [email], connection=connection)
             email_msg.attach_alternative(msg.html_message+html_footer.encode('utf-8'),'text/html')
             
             if throttle or current.request.retries > 0: #throttle if we tried a few times and got the rate limiter
                 time.sleep(0.2)
-
             
             try: #nested try except blocks.
                 #CHAOS!

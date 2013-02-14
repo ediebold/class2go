@@ -246,7 +246,7 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
 
     def commit(self, clone_fields = None):
         if self.mode != 'draft': return;
-
+        
         ready_instance = self.image
         if not clone_fields or 'institution' in clone_fields:
             ready_instance.institution = self.institution
@@ -1846,6 +1846,7 @@ class CourseEmail(Email, models.Model):
                  ('staff','staff'),
                  ('students','students'),
                  ('all','all'),
+                 ('new','new'),
                  )
     course = models.ForeignKey(Course)
     to = models.CharField(max_length=64, choices=TO_OPTIONS, default='myself')

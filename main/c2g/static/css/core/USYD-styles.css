@@ -358,6 +358,16 @@ div.question .per-question-btns {border-color: #008ED6 !important;}
     width:100%;
 }
 
+div.ui-dialog div.ui-widget-header {
+background: 
+#008ED6 !important;
+}
+
+.profile-courses .course {
+    border: 1px solid #008ED6;
+    background-color: #E8F4F9;
+}
+
 /*Date picker stuff*/
 
 .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { border-color: #006EB6; background: #008ED6; color: #ffffff; }

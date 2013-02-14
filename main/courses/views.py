@@ -44,7 +44,7 @@ def current_redirects(request, course_prefix):
     else: 
         raise Http404
     
-
+@auth_view_wrapper
 def main(request, course_prefix, course_suffix):
     #Common page data is already run in middleware
     #try:

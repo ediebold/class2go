@@ -69,6 +69,7 @@ def email_members(request, course_prefix, course_suffix):
                 recipient_qset = request.common_page_data['course'].get_all_course_admins()
             elif form.cleaned_data['to'] == "myself":
                 recipient_qset = User.objects.filter(id=request.user.id)
+        
             courses.email_members.tasks.delegate_emails.delay(email.hash,
                                                               recipient_qset.count(),
                                                               request.common_page_data['course'].title,
@@ -117,7 +118,6 @@ def email_members_old(request, course_prefix, course_suffix):
                 recipient_qset = request.common_page_data['course'].get_all_course_admins()
             elif form.cleaned_data['to'] == "myself":
                 recipient_qset = User.objects.filter(id=request.user.id)
-            #pdb.set_trace()
             courses.email_members.tasks.email_with_celery.delay(
                                                                 form.cleaned_data['subject'],
                                                                 form.cleaned_data['message'],
