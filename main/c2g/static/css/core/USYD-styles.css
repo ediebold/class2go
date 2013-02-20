@@ -421,6 +421,10 @@ border-bottom: 1px solid #999;
   background-color: #fff !important;
 }
 
+fieldset label {
+    position: relative !important;
+}
+
 
 /*Date picker stuff*/
 
