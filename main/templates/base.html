@@ -116,7 +116,7 @@
                     <ul class="unstyled">
                         {% if user.is_authenticated %}
                             <li>
-                                <form action="{% url 'auth_logout' %}?next=/{{common_page_data.course_prefix}}/{{common_page_data.course_suffix}}" method="POST">
+                                <form action="{% url 'auth_logout' %}?next=/" method="POST">
                                     <input type="submit" id="login_button" class="btn logout hidden-phone" value="{% trans 'Logout' %}" />
                                     {% csrf_token %}
                                 </form>
@@ -153,9 +153,30 @@
             {% endblock topnav %}
         </div>
         
-        
         {% block content %}
         <div id="main-content" class="container-fluid body-content" role="main">
+        
+        {% block messages %}
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'success' in message.tags %}
+             <div class="alert alert-success"><em class="icon-ok"></em><button class="close" data-dismiss="alert">×</button>{{ message }}</div>
+            {% endif %}
+            {% if 'error' in message.tags %}
+            <div class="alert alert-error"><em class="icon-fire"></em><button class="close" data-dismiss="alert">×</button>{{ message }}</div>
+            {% endif %}
+            {% if 'warning' in message.tags %}
+            <div class="alert alert-warning"><em class="icon-warning-sign"></em><button class="close" data-dismiss="alert">×</button>{{ message }}</div>
+            {% endif %}
+            {% if 'info' in message.tags %}
+            <div class="alert alert-info"><em class="icon-info-sign"></em><button class="close" data-dismiss="alert">×</button>{{ message }}</div>
+            {% endif %}
+
+        {% endfor %}
+
+    {% endif %}
+    {% endblock messages %}
+        
             <div class="row-fluid">
                 {% block l_column_content %}
                     {% for available_course in available_course_list %}

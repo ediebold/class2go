@@ -161,7 +161,7 @@ urlpatterns = patterns('',
 
 
     #Course signup for students
-    url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/signup/?$', 'courses.actions.signup_with_course'),
+    #url(r'^(?P<course_prefix>[a-zA-Z0-9_-]+)/(?P<course_suffix>[a-zA-Z0-9_-]+)/signup/?$', 'courses.actions.signup_with_course'),
 
 
     url(r'^courses/new/?', 'courses.admin_views.new'),

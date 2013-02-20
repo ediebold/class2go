@@ -63,7 +63,7 @@
     <div class="span5">
     <div class="alert alert-info"><em class="icon-info-sign"></em>Hi {{user.first_name}} {{user.last_name}}.  It doesn't look like you are enrolled in this course. If this is incorrect, please contact your course co-ordinator.
         </div>
-    <a href="{% url 'auth_logout' %}?next={% url 'courses.preview.views.preview' common_page_data.course_prefix common_page_data.course_suffix%}">Log-in as someone else</a>
+    <a href="{% url 'auth_logout' %}?next={% url 'default_login' %}?next={{ request.get_full_path }}">Log-in as someone else</a>
     </div>
   {% endif %}
 

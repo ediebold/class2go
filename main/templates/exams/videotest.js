@@ -22,7 +22,6 @@
 
             // set up deferred object for proper chaining of function calls
             var fetchDeferred = $.Deferred();
-
             // private vars
             var thumbManifest = {};
             var psManifest = {};
@@ -31,7 +30,6 @@
 
             // private methods
             var loadThumbManifest = function (data, textStatus, jqXHR) {
-
                 $.each(data, function (key, val) {
                        $.each(val, function (k, v) {
                               if (k == "imgsrc") {
@@ -40,11 +38,11 @@
                               })
                        thumbManifest[key.trim()] = val;
                        });
-
+                
                 C2G.videoSetup.slideIndices = thumbManifest;
             };
-
             var initThumbManifest = function () {
+                $.ajax();
                 return $.getJSON(thumbnailPath + "manifest.txt", "", loadThumbManifest).always(function() {
                         thumbsChecked = true;
                     });  //The request may fail if there are no thumbs, but we know we tried.
