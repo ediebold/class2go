@@ -321,3 +321,8 @@ if settings.DEBUG and settings.SITE_NAME_SHORT:
             {'url': settings.STATIC_URL+'graphics/core/%s-favicon.ico' % site})
     )
    
+urlpatterns += patterns('', (
+        r'^static/(?P<path>.*)$',
+        'django.views.static.serve',
+        {'document_root': 'static'}
+))

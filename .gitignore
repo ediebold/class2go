@@ -1,7 +1,7 @@
 db-dumps/
 main/database.py
 venv_c2g
-
+main/static
 django-class2go
 
 django-class2go/*

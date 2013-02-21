@@ -76,7 +76,7 @@ TIME_ZONE = 'Australia/Sydney'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-AU'
 
 
 # These site variables are used for display in the product and can 
@@ -181,7 +181,7 @@ ROOT_URLCONF = 'urls'
 try:
     LOCAL_CACHE_LOCATION
 except NameError:
-    LOCAL_CACHE_LOCATION = "/var/log/django/cache"
+    LOCAL_CACHE_LOCATION = "/opt/class2go"
 
 try:
     FILE_CACHE_TIME
@@ -416,7 +416,6 @@ DATABASE_ROUTERS = ['c2g.routers.CeleryDBRouter',
                    ]
 
 # Actually send email
-EMAIL_ALWAYS_ACTUALLY_SEND = True
 try:
     EMAIL_ALWAYS_ACTUALLY_SEND
 except NameError:
@@ -427,14 +426,14 @@ except NameError:
 try:
     SERVER_EMAIL
 except NameError:
-    SERVER_EMAIL = 'noreply@c2g.it.usyd.edu.au'
+    SERVER_EMAIL = 'noreply@class.stanford.edu'
 
 # For Production, or if override is set, actually send email
 if PRODUCTION or EMAIL_ALWAYS_ACTUALLY_SEND:
-    DEFAULT_FROM_EMAIL = "edie5042@uni.sydney.edu.au" #probably change for production
+    DEFAULT_FROM_EMAIL = "c2g@it.usyd.edu.au" #probably change for production
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
     EMAIL_HOST = "email-smtp.us-east-1.amazonaws.com"
-    EMAIL_PORT = 25
+    EMAIL_PORT = 587
     EMAIL_HOST_USER = SES_SMTP_USER
     EMAIL_HOST_PASSWORD = SES_SMTP_PASSWD
     EMAIL_USE_TLS = True
@@ -457,7 +456,7 @@ BROKER_TRANSPORT='sqs'
 BROKER_USER = AWS_ACCESS_KEY_ID
 BROKER_PASSWORD = AWS_SECRET_ACCESS_KEY
 BROKER_TRANSPORT_OPTIONS = {
-    'region': 'us-east-1',
+    'region': 'us-west-2', 
     'queue_name_prefix' : INSTANCE+'-',
     'visibility_timeout' : 3600*6,
 }
