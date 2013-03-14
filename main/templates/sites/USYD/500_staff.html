@@ -1,0 +1,49 @@
+<html>
+    <head>
+        
+        <link rel="stylesheet" href="static/css/core/bootstrap.css" />
+        <link rel="stylesheet" href="/static/css/core/body.css" />
+        <!--[if IE 7]>
+         <link rel="stylesheet" href="/static/css/core/font-awesome-ie7.css">
+         <![endif]-->
+        
+        <title>USYD Class2Go</title>
+        
+    </head>
+    <body>
+        <div id="viewport">
+            <div id="global-header">
+            </div>
+            
+            <div class="container-fluid body-content">
+                
+                <h3>Looks like something went wrong.  We're very sorry about this.</h3>
+                
+                <p>The system has already notified us, but please feel free to email us to make sure we notice quickly, at c2g-facsupport (SymbolForAt) cs.stanford.edu  </p>
+                
+                <p>Sorry about that!</p>
+            </div>
+            
+            <div id="global-footer" class="footer hidden-phone">
+                <div class="container">
+                    <div class="row">
+                        <div id="bottom-text" class="span11">
+                            <div id="bottom-menu">
+                                <ul class="unstyled">
+                                    <li>CRICOS Code: 00026A</li>
+                                    <li><a href="/">Class2Go Home</a></li>
+                                    <li><a href="http://www.usyd.edu.au">University Home</a></li>
+                                    <li><a href="{% url 'c2g.views.tos' %}">Terms of Use</a></li>
+                                    <li><a href="{% url 'c2g.views.tos' %}#copyright">Copyright Complaints</a></li>
+                                    <li><a href="{% url 'c2g.views.contactus' %}">Technical Support</a></li>
+                                </ul>
+                            </div>
+                            <p class="vcard">&copy; <span class="fn org">The University of Sydney</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </body>
+</html>
