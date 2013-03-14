@@ -93,7 +93,6 @@
                             <a id="login_button" class="btn" href="{% url 'default_login' %}?next={{ request.get_full_path }}">{% trans 'Login' %}</a>
                             {% endif %}
                     {% endif %}
-                {% endif %}
                 {% if common_page_data.can_switch_mode or common_page_data.is_course_admin %}
                     {% if common_page_data.course_mode == 'draft' %}
                         <li class="dropdown {% block admin_link_class %}{% endblock admin_link_class %}>"{% block course_admin_link %}{% endblock course_admin_link %}>
@@ -108,23 +107,6 @@
                                 {% endif %}
                               <!-- <li><a href="{% url 'courses.admin_views.admin' common_page_data.course_prefix common_page_data.course_suffix %}">Coming Soon!</a></li> -->
                             </ul>
->>>>>>> master
-                        </li>
-                    {% endif %}
-                    {% if common_page_data.can_switch_mode or common_page_data.is_course_admin %}
-                        {% if common_page_data.course_mode == 'draft' %}
-                            <li class="dropdown"{% block course_admin_link %}{% endblock course_admin_link %}>
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Course Administration' %}<em class="caret"></em></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="{% url 'courses.admin_views.enroller' common_page_data.course_prefix common_page_data.course_suffix %}">Update Enrolments</a></li>
-                                  <li><a href="{% url 'courses.email_members.views.email_members' common_page_data.course_prefix common_page_data.course_suffix %}">{% trans 'Email Course Members' %}</a></li>
-                                  <li><a href="{% url 'courses.reports.views.main' common_page_data.course_prefix common_page_data.course_suffix %}">{% trans 'Reports' %}</a></li>
-                                  <li><a href="{% url 'courses.reports.views.generate_in_line_report' common_page_data.course_prefix common_page_data.course_suffix %}">{% trans 'In-line Reports' %}</a></li>
-                                    {% if common_page_data.course.share_to.exists %}
-                                  <li><a href="{% url 'courses.content_sections.views.copy_content_form' common_page_data.course_prefix common_page_data.course_suffix %}">{% trans 'Copy Content To Other Course' %}</a></li>
-                                    {% endif %}
-                                  <!-- <li><a href="{% url 'courses.admin_views.admin' common_page_data.course_prefix common_page_data.course_suffix %}">Coming Soon!</a></li> -->
-                                </ul>
                             </li>
                         {% endif %}
                     {% endif %}
@@ -137,11 +119,6 @@
 
     {% block content %}
     {% block course_notification %}{% endblock course_notification %}
-    {% endfor %}
-
-{% endif %}
-{% endblock messages %}
-{% block course_notification %}{% endblock course_notification %}
 
 <div id="main-content" class="container-fluid body-content" role="main">
     <div id="main-column-container" class="row-fluid">
