@@ -5,7 +5,7 @@
 {% block home_link_class %}class="active"{% endblock home_link_class %}
 
 {% block course_notification %}
-{% if user.is_authenticated and not common_page_data.is_course_member %}
+{% if user.is_authenticated and not common_page_data.is_course_member and not common_page_data.ready_course.preenroll_only %}
 <div class="alert alert-info inline">
     <em class="icon-info-sign"></em>{% trans 'You are not yet a member in this course.' %} <form style="display:inline" action="{% url 'courses.actions.signup_with_course' common_page_data.course_prefix common_page_data.course_suffix %}{% if request.GET.join_next %}?redirect_to={{ request.GET.join_next }}{% endif %}" method="POST">
         <input type="submit" id="login_button" class="btn" value="Join" />
@@ -13,6 +13,12 @@
     </form>
 </div>
 {% endif %}
+{% if user.is_authenticated and not common_page_data.is_course_member and common_page_data.ready_course.preenroll_only %}
+<div class="alert alert-error inline">
+    <em class="icon-info-sign"></em>{% trans 'Your account is not on the access list of this restricted course.  Please contact the course staff if you believe this to be in error.' %}
+</div>
+{% endif %}
+
 {% endblock %}
 
 {% block l_column_content %}
@@ -53,6 +59,44 @@
     <a class="btn pull-right" href="{% url 'courses.announcements.views.list' common_page_data.course_prefix common_page_data.course_suffix %}">{% trans 'View all announcements' %}</a>
 </div>
 {% endblock m_column_content %}
+
+{% block twitter_widget %}
+    {% if course.twitter_tag %}
+	<div id="twitterWidget" class="span3 pull-right">
+	    <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+	    <script>
+		new TWTR.Widget({
+		    version: 2,
+		    type: 'search',
+		    search: '{{ course.twitter_tag }}',
+		    title: 'Recent Tweets',
+		    interval: 1000,
+		    width: 'auto',
+		    height: 300,
+		    theme: {
+			shell: {
+			    background: '#e9e6df',
+			    color: '#333333'
+			},
+			tweets: {
+			    background: '#e9e6df',
+			    color: '#333333',
+			    links: '#820000'
+			}
+		    },
+		    features: {
+			scrollbar: false,
+			loop: false,
+			live: true,
+			hashtags: true,
+			avatars: true,
+			behavior: 'default'
+		    }
+		}).render().start();
+	    </script>
+	</div>
+    {% endif %}
+{% endblock twitter_widget %}
 
 {% block addl_scripts %}
 

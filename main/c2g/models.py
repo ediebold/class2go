@@ -122,6 +122,7 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
     handle = models.CharField(max_length=255, null=True, db_index=True)
     preview_only_mode = models.BooleanField(default=True)
     institution_only = models.BooleanField(default=False)
+    preenroll_only = models.BooleanField(default=False)
     share_to = models.ManyToManyField("self",symmetrical=False,related_name='share_from',null=True, blank=True)
     short_description = models.TextField(blank=True)
     prerequisites = models.TextField(blank=True)
@@ -129,7 +130,7 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
     outcomes = models.TextField(blank=True)
     faq = models.TextField(blank=True)
     logo = models.FileField(upload_to=get_file_path,null=True)
- 
+    twitter_tag = models.CharField(max_length=64, null = True, blank=True)
     
     # Since all environments (dev, draft, prod) go against ready piazza, things will get
     # confusing if we get collisions on course ID's, so we will use a unique ID for Piazza.
@@ -140,8 +141,8 @@ class Course(TimestampMixin, Stageable, Deletable, models.Model):
 
         if not self.logo.name or not self.logo.storage.exists(self.logo.name): 
             return settings.STATIC_URL + "graphics/core/class2go.png"
-        
-        url = self.logo.storage.url(self.logo.name)
+
+        url = self.logo.storage.url_monkeypatched(self.logo.name, querystring_auth=False)
         return url
 
 
@@ -763,7 +764,7 @@ class CourseCertificate(TimestampMixin, models.Model):
             if is_storage_local():
                 url = get_site_url() + default_storage.url(asset_path)
             else:
-                url = default_storage.url_monkeypatched(asset_path, response_headers={'response-content-disposition': 'attachement'})
+                url = default_storage.url_monkeypatched(asset_path, response_headers={'response-content-disposition': 'attachment'})
         return url
 
     def __repr__(self):
@@ -1162,7 +1163,7 @@ class Video(TimestampMixin, Stageable, Sortable, Deletable, models.Model):
         mystore = self.file.storage
         if is_storage_local():
             # FIXME: doesn't work on local sites yet
-            print "DEBUG: Multiple download links don't work on local sites yet, sorry." 
+            print "WARNING: Multiple download links don't work on local sites yet, sorry." 
             return [('large', get_site_url() + mystore.url(myname), self.file.size, '')]
         else:
             # XXX: very S3 specific
@@ -1931,7 +1932,12 @@ class Exam(TimestampMixin, Deletable, Stageable, Sortable, models.Model):
                         'survey':'Survey',
                         'interactive_exercise':'Interactive Exercise',
                        }
-    
+    Exam_HUMAN_TYPES_PLURAL = {'exam':'Exams',
+                               'problemset':'Quizzes',
+                               'survey':'Surveys',
+                               'interactive_exercise':'Interactive Exercises',
+                              }
+
     course = models.ForeignKey(Course, db_index=True)
     section = models.ForeignKey(ContentSection, null=True, db_index=True)
     title = models.CharField(max_length=255, null=True, blank=True)
@@ -2392,8 +2398,8 @@ class Instructor(TimestampMixin, models.Model):
     def photo_dl_link(self):
         if not self.photo.storage.exists(self.photo.name):
             return ""
-        
-        url = self.photo.storage.url(self.photo.name)
+
+        url = self.photo.storage.url_monkeypatched(self.photo.name, querystring_auth=False)
         return url
     
     def __unicode__(self):
@@ -2880,5 +2886,10 @@ class ContentGroup(models.Model):
     class Meta:
         db_table = u'c2g_content_group'
         
+
+class StudentInvitation(TimestampMixin, models.Model):
+    email = models.CharField(max_length=128, db_index=True)
+    course = models.ForeignKey(Course, db_index=True)
+
 
 

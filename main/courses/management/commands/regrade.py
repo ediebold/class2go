@@ -1,10 +1,11 @@
-#!/usr/bin/env python
-
+try:
+    from dateutil import parser
+except ImportError, msg:
+    parser = False
+import string
 from optparse import make_option
-from dateutil import parser
 
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
 
 from c2g.models import ExamRecord, Exam, ExamScore, ExamRecordScore
 from courses.exams.autograder import *
@@ -40,6 +41,8 @@ class Command(BaseCommand):
         examRecords = ExamRecord.objects \
                 .select_related('examrecordscore', 'student') \
                 .filter(exam_id__exact=examid, complete=True)
+        if not parser and (options['start_time'] or options['end_time']):
+            raise CommandError("Can't parse start and end times without having 'dateutil' installed.\nSee http://labix.org/python-dateutil")
         if options['start_time']:
             start = parser.parse(options['start_time'])
             examRecords = examRecords.filter(time_created__gt=start)
@@ -106,11 +109,16 @@ class Command(BaseCommand):
                 examscore_after = max(examscore_before, score_after)
                 
                 #raw = raw score, score = with penalties, agg = exam_score, over all attempts
-                status_line =  "%d, \"%s\", \"%s\", %s, %s, %s, raw:%0.1f->%0.1f score:%0.1f->%0.1f agg:%0.1f->%0.1f late:%d->%d" \
-                        % (er.id, s.first_name, s.last_name, s.username, s.email, 
-                           str(er.time_created), rawscore_before, rawscore_after,
-                           score_before, score_after, examscore_before, examscore_after,
-                           er.late, is_late)
+                status_line =  "\"%s\", \"%s\", %s, %s, %s, " \
+                        % (s.first_name, s.last_name, s.username, s.email, str(er.time_created))
+                status_line += "raw[%d]:%0.1f->%0.1f " \
+                        % (ers.id, rawscore_before, rawscore_after)
+                status_line += "score[%d]:%0.1f->%0.1f " \
+                        % (er.id, score_before, score_after)
+                status_line += "agg[%d]:%0.1f->%0.1f " \
+                        % (es.id, examscore_before, examscore_after)
+                status_line += "late:%d->%d" \
+                        % (er.late, is_late)
                         
                 if score_before == score_after and rawscore_before == rawscore_after \
                    and examscore_before == examscore_after and is_late == er.late :

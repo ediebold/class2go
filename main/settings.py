@@ -227,6 +227,14 @@ CACHES = {
             'MAX_ENTRIES': 1000
             }
     },
+    'grader_store': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'grader_cache',
+        'TIMEOUT': 86400,  # one day
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+            }
+    },
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': LOCAL_CACHE_LOCATION + "/cache-default",
@@ -277,6 +285,7 @@ INSTALLED_APPS = (
                       'courses.videos',
                       'courses.video_exercises',
                       'courses.email_members',
+                      'courses.member_management',
                       'courses.reports',
                       'problemsets',
                       'django.contrib.flatpages',
@@ -426,7 +435,7 @@ except NameError:
 try:
     SERVER_EMAIL
 except NameError:
-    SERVER_EMAIL = 'noreply@class.stanford.edu'
+    SERVER_EMAIL = 'noreply@class2go.stanford.edu'
 
 # For Production, or if override is set, actually send email
 if PRODUCTION or EMAIL_ALWAYS_ACTUALLY_SEND:
