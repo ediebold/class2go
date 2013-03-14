@@ -16,6 +16,7 @@
 <form name="form_update_enrolment" method="POST" action="{% url 'courses.admin_views.enroller' common_page_data.course_prefix common_page_data.course_suffix %}" enctype="multipart/form-data">
     <label class="logo">Please upload the CSV file obtained from the Timetable site here (this process can take a while):</label>
     <input type="file" name="csv" id="id_csv" /> <br />
+    <input type="checkbox" name="email" id="id_csv" /> Email new students?<br />
 	<input type="submit" class="btn" value="Save" style='padding: 5px; margin-top: 20px;'/>
 	{% csrf_token %}
 </form>

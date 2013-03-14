@@ -36,7 +36,7 @@ def enroller(request, course_prefix, course_suffix):
     #What to do if file has been uploaded
     if request.method == 'POST':
             csv_file = request.FILES['csv']
-            reader = csv.reader(csv_file)
+            reader = csv.reader(csv_file, delimiter='\t')
             course = common_page_data['ready_course']
             course_group = course.student_group
             new_students = []
@@ -45,14 +45,13 @@ def enroller(request, course_prefix, course_suffix):
             for row in reader:
                 current_student = {}
                 # Save header row.
-                if rownum == 2:
+                if rownum == 0:
                     header = row
                 elif rownum > 2:
                     colnum = 0
                     for col in row:
                         current_student[header[colnum]] = col
                         colnum += 1
-                    
                     #Run this for each student
                     current_student['unikey'] = current_student['Email'][:8]
                     user_exists = User.objects.filter(username=current_student['unikey']).exists()
@@ -86,23 +85,24 @@ def enroller(request, course_prefix, course_suffix):
 
                 rownum += 1
             course.commit()
-            subject = 'You have been enrolled in ' + course.title
-            message = 'You have just been enrolled in ' + course.title + '. If you believe this is an error, please email ' + course.contact + ' with details.'
-            email = CourseEmail(course=course,
-                                sender=request.user,
-                                to='new',
-                                subject=subject,
-                                html_message=message,
-                                hash=md5((message+subject+datetime.datetime.isoformat(datetime.datetime.now())).encode('utf-8')).hexdigest())
-            email.save()
             new_count = len(new_students)
-            courses.email_members.tasks.course_email_with_celery.delay(email.hash,
-                                                              new_students,
-                                                              False,
-                                                              course.title,
-                                                              course.handle,
-                                                              request.build_absolute_uri(reverse('courses.views.main', args=[course_prefix, course_suffix])),
-                                                             )
+            if 'email' in request.POST:
+                subject = 'You have been enrolled in ' + course.title
+                message = 'Dear student,<br /><br />You have been enrolled in COMP2129: Operating Systems and Machine Principles at USYD Class2Go by a member of the course staff.<br />Please visit ' + request.build_absolute_uri(reverse('courses.views.main', args=[course.prefix, course.suffix])) + ' to access the course materials.<br /><br />Thanks!<br />USYD Class2Go'
+                email = CourseEmail(course=course,
+                                    sender=request.user,
+                                    to='new',
+                                    subject=subject,
+                                    html_message=message,
+                                    hash=md5((message+subject+datetime.datetime.isoformat(datetime.datetime.now())).encode('utf-8')).hexdigest())
+                email.save()
+                courses.email_members.tasks.course_email_with_celery.delay(email.hash,
+                                                                  new_students,
+                                                                  False,
+                                                                  course.title,
+                                                                  course.handle,
+                                                                  request.build_absolute_uri(reverse('courses.views.main', args=[course_prefix, course_suffix])),
+                                                                 )
             if new_count < 1:
                 messages.add_message(request,messages.INFO, 'No new students were added!')
             else:

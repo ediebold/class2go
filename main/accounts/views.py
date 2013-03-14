@@ -537,7 +537,6 @@ def usyd_login(request):
             return HttpResponseRedirect(redir_to)
         
         else:
-            messages.add_message(request,messages.ERROR, 'WebAuth did not return your identity to us!  Please try logging in again.  If the problem continues please contact techsupport@c2g.it.usyd.edu.au')
             extra_context = {}
             context = RequestContext(request)
             for key, value in extra_context.items():
